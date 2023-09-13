@@ -82,6 +82,41 @@ describe("Category Uni Tests", () => {
       expect(validateSpy).toHaveBeenCalledTimes(4);
     });
 
+    test("should update a category with default values", () => {
+      let category = Category.create({
+        name: "Movie",
+        description: "Movie description",
+      });
+
+      category.update({
+        name: "Movie 2",
+        description: "Movie 2 description 2",
+      });
+
+      expect(category.name).toBe("Movie 2");
+      expect(category.description).toBe("Movie 2 description 2");
+    });
+
+    test("should activate and deactivate", () => {
+      let category = Category.create({
+        name: "Movie",
+        description: "Movie description",
+        is_active: false,
+      });
+
+      category.activate();
+      expect(category.is_active).toBeTruthy();
+
+      category = Category.create({
+        name: "Movie",
+        description: "Movie description",
+        is_active: true,
+      });
+
+      category.deactivate();
+      expect(category.is_active).toBeFalsy();
+    });
+
     test("should create a category with all values", () => {
       const created_at = new Date();
 
