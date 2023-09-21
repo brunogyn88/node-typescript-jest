@@ -1,6 +1,11 @@
 import { Entity } from "../../../domain/entity";
 import { NotFoundError } from "../../../domain/errors/not-found.error";
-import { IRepository } from "../../../domain/repository/repository-interface";
+import {
+  IRepository,
+  ISearchableRepository,
+} from "../../../domain/repository/repository-interface";
+import { SearchParams } from "../../../domain/repository/search-params";
+import { SearchResult } from "../../../domain/repository/search-result";
 import { ValueObject } from "../../../domain/value-object";
 
 export abstract class InMemoryRepository<
@@ -45,4 +50,44 @@ export abstract class InMemoryRepository<
     return this.items;
   }
   abstract getEntity(): new (...args: any[]) => E;
+}
+
+export abstract class InMemorySearchableRepository<
+    E extends Entity,
+    EntityId extends ValueObject,
+    Filter = string
+  >
+  extends InMemoryRepository<E, EntityId>
+  implements ISearchableRepository<E, EntityId, Filter>
+{
+  sortableFields: string[] = [];
+  async search(props: SearchParams<Filter>): Promise<SearchResult<E>> {
+    const itemsFiltered = await this.applyFilter(this.items, props.filter);
+    const itemsSorted = this.applySort(
+      itemsFiltered,
+      props.sort,
+      props.sort_dir
+    );
+    const itemsPaginated = this.applyPaginate(
+      itemsSorted,
+      props.page,
+      props.per_page
+    );
+
+    return new SearchResult({
+      items: itemsPaginated,
+      total: itemsFiltered.length,
+      current_page: props.page,
+      per_page: props.per_page,
+    });
+  }
+
+  protected abstract applyFilter(
+    items: E[],
+    filter: Filter | null
+  ): Promise<E[]>;
+
+  protected applyPaginate() {}
+
+  protected applySort() {}
 }
