@@ -4,7 +4,10 @@ import {
   IRepository,
   ISearchableRepository,
 } from "../../../domain/repository/repository-interface";
-import { SearchParams } from "../../../domain/repository/search-params";
+import {
+  SearchParams,
+  SortDirection,
+} from "../../../domain/repository/search-params";
 import { SearchResult } from "../../../domain/repository/search-result";
 import { ValueObject } from "../../../domain/value-object";
 
@@ -87,7 +90,40 @@ export abstract class InMemorySearchableRepository<
     filter: Filter | null
   ): Promise<E[]>;
 
-  protected applyPaginate() {}
+  protected applyPaginate(
+    items: E[],
+    page: SearchParams["page"],
+    per_page: SearchParams["per_page"]
+  ) {
+    const start = (page - 1) * per_page;
+    const limit = start + per_page;
+    return items.slice(start, limit);
+  }
+  protected applySort(
+    items: E[],
+    sort: string | null,
+    sort_dir: SortDirection | null,
+    custom_getter?: (sort: string, item: E) => any
+  ) {
+    if (!sort || !this.sortableFields.includes(sort)) {
+      return items;
+    }
 
-  protected applySort() {}
+    return [...items].sort((a, b) => {
+      //@ts-ignore
+      const aValue = custom_getter ? custom_getter(sort, a) : a[sort];
+      //@ts-ignore
+      const bValue = custom_getter ? custom_getter(sort, b) : b[sort];
+
+      if (aValue < bValue) {
+        return sort_dir === "asc" ? -1 : 1;
+      }
+
+      if (aValue > bValue) {
+        return sort_dir === "asc" ? 1 : -1;
+      }
+
+      return 0;
+    });
+  }
 }
