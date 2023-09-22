@@ -1,9 +1,10 @@
+import { Entity } from "../../shared/domain/entity";
+import { EntityValidationError } from "../../shared/domain/validators/validation.error";
 import { ValueObject } from "../../shared/domain/value-object";
 //import ValidatorRules from "../../shared/domain/validators/validator-rules";
 import { Uuid } from "../../shared/domain/value-objects/uuid.vo";
+import { CategoryFakeBuilder } from "./category-fake.builder";
 import { CategoryValidatorFactory } from "./category.validator";
-import { EntityValidationError } from "../../shared/domain/validators/validation.error";
-import { Entity } from "../../shared/domain/entity";
 
 export type CategoryConstructorProps = {
   category_id?: Uuid;
@@ -17,12 +18,6 @@ export type CategoryCreateCommand = {
   name: string;
   description?: string | null;
   is_active?: boolean;
-  created_at?: Date;
-};
-
-export type CategoryUpdateCommand = {
-  name: string;
-  description?: string | null;
 };
 
 export class Category extends Entity {
@@ -51,11 +46,6 @@ export class Category extends Entity {
     return category;
   }
 
-  update(updateData: CategoryUpdateCommand): void {
-    this.changeName(updateData.name);
-    this.changeDescription(updateData.description);
-  }
-
   changeName(name: string): void {
     this.name = name;
     Category.validate(this);
@@ -80,6 +70,10 @@ export class Category extends Entity {
     if (!isValid) {
       throw new EntityValidationError(validator.errors);
     }
+  }
+
+  static fake() {
+    return CategoryFakeBuilder;
   }
 
   toJSON() {
