@@ -1,10 +1,10 @@
-import { Entity } from "../../shared/domain/entity";
-import { EntityValidationError } from "../../shared/domain/validators/validation.error";
-import { ValueObject } from "../../shared/domain/value-object";
+import { Entity } from '../../shared/domain/entity';
+import { EntityValidationError } from '../../shared/domain/validators/validation.error';
+import { ValueObject } from '../../shared/domain/value-object';
 //import ValidatorRules from "../../shared/domain/validators/validator-rules";
-import { Uuid } from "../../shared/domain/value-objects/uuid.vo";
-import { CategoryFakeBuilder } from "./category-fake.builder";
-import { CategoryValidatorFactory } from "./category.validator";
+import { Uuid } from '../../shared/domain/value-objects/uuid.vo';
+import { CategoryFakeBuilder } from './category-fake.builder';
+import { CategoryValidatorFactory } from './category.validator';
 
 export type CategoryConstructorProps = {
   category_id?: Uuid;
@@ -16,6 +16,13 @@ export type CategoryConstructorProps = {
 
 export type CategoryCreateCommand = {
   name: string;
+  description?: string | null;
+  is_active?: boolean;
+  created_at?: Date;
+};
+
+export type CategoryUpdateCommand = {
+  name?: string;
   description?: string | null;
   is_active?: boolean;
 };
@@ -48,6 +55,12 @@ export class Category extends Entity {
 
   changeName(name: string): void {
     this.name = name;
+    Category.validate(this);
+  }
+
+  update(props: CategoryUpdateCommand): void {
+    this.changeName(props.name);
+    this.changeDescription(props.description);
     Category.validate(this);
   }
 
